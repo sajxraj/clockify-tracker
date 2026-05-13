@@ -151,7 +151,7 @@ export function indexPage() {
     .timeline-grid { position:absolute; top:0; left:56px; right:0; height:100%; pointer-events:none; }
     .timeline-grid div { position:absolute; left:0; right:0; height:1px; background:#161b22; }
     .timeline-track { position:absolute; top:0; left:56px; right:8px; height:100%; }
-    .timeline-bar { position:absolute; left:0; right:0; background:#1f6feb; border:1px solid #388bfd; border-radius:4px; color:#fff; font-size:0.75rem; padding:2px 6px; text-align:left; cursor:pointer; overflow:hidden; display:flex; align-items:center; gap:0.4rem; line-height:1.1; }
+    .timeline-bar { position:absolute; left:0; right:0; margin:0; background:#1f6feb; border:1px solid #388bfd; border-radius:4px; color:#fff; font-size:0.75rem; padding:2px 6px; text-align:left; cursor:pointer; overflow:hidden; display:flex; align-items:center; gap:0.4rem; line-height:1.1; }
     .timeline-bar .dot { display:inline-block; width:8px; height:8px; border-radius:50%; flex-shrink:0; }
     .timeline-bar .desc { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     .timeline-bar .jira { font-size:0.7rem; background:rgba(0,0,0,0.25); padding:1px 4px; border-radius:3px; flex-shrink:0; }
