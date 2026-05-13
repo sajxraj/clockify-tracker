@@ -1474,10 +1474,76 @@ export function indexPage() {
       }
     }
 
+    async function deleteSessionFromTimeline(id) {
+      var ok = await showConfirm('Delete this entry from Clockify and Jira?');
+      if (!ok) return;
+      try {
+        var res = await fetch('/api/timer/' + encodeURIComponent(id), { method: 'DELETE' });
+        var result = await res.json();
+        if (!result.ok) { alert(result.error || 'Failed to delete entry.'); return; }
+        loadTimeline();
+        loadSessions();
+      } catch (err) {
+        alert('Failed to delete entry.');
+      }
+    }
+
+    function prefillManualLogFromGap(fromIso, toIso) {
+      if (!fromIso || !toIso) return;
+      var fromDate = new Date(fromIso);
+      var toDate = new Date(toIso);
+      if (isNaN(fromDate.getTime()) || isNaN(toDate.getTime())) return;
+
+      switchTab('home');
+      switchTrackMode('manual');
+
+      var rangeWrap = document.getElementById('manual-range-wrap');
+      var durationWrap = document.getElementById('manual-duration-wrap');
+      if (rangeWrap) rangeWrap.style.display = '';
+      if (durationWrap) durationWrap.style.display = 'none';
+
+      function toDateInput(d) {
+        var y = d.getFullYear();
+        var m = String(d.getMonth() + 1).padStart(2, '0');
+        var dd = String(d.getDate()).padStart(2, '0');
+        return y + '-' + m + '-' + dd;
+      }
+      function toTimeInput(d) {
+        var hh = String(d.getHours()).padStart(2, '0');
+        var mm = String(d.getMinutes()).padStart(2, '0');
+        return hh + ':' + mm;
+      }
+
+      var sd = document.getElementById('manual-start-date');
+      var st = document.getElementById('manual-start-time');
+      var ed = document.getElementById('manual-end-date');
+      var et = document.getElementById('manual-end-time');
+      if (sd) sd.value = toDateInput(fromDate);
+      if (st) st.value = toTimeInput(fromDate);
+      if (ed) ed.value = toDateInput(toDate);
+      if (et) et.value = toTimeInput(toDate);
+
+      var desc = document.getElementById('manual-description');
+      if (desc) desc.focus();
+    }
+
     document.addEventListener('click', function(e) {
-      const btn = e.target.closest && e.target.closest('[data-delete-id]');
-      if (!btn || btn.disabled) return;
-      deleteSession(btn.getAttribute('data-delete-id'));
+      if (!e.target.closest) return;
+      var delBtn = e.target.closest('[data-delete-id]');
+      if (delBtn && !delBtn.disabled) {
+        deleteSession(delBtn.getAttribute('data-delete-id'));
+        return;
+      }
+      var bar = e.target.closest('.timeline-bar[data-session-id]');
+      if (bar) {
+        deleteSessionFromTimeline(bar.getAttribute('data-session-id'));
+        return;
+      }
+      var gap = e.target.closest('.timeline-gap');
+      if (gap) {
+        prefillManualLogFromGap(gap.getAttribute('data-from'), gap.getAttribute('data-to'));
+        return;
+      }
     });
 
     function escapeHtml(str) {
