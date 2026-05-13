@@ -683,6 +683,7 @@ export function indexPage() {
     function renderTimeline(sessions, bounds) {
       var canvas = document.getElementById('timeline-canvas');
       canvas.innerHTML = '';
+      document.getElementById('timeline-summary').textContent = '0m logged · 0 gaps';
 
       var gutter = document.createElement('div');
       gutter.className = 'timeline-gutter';
@@ -746,6 +747,13 @@ export function indexPage() {
 
       clipped.sort(function(a, b) { return a.clipStart - b.clipStart; });
 
+      var loggedMs = 0;
+      for (var k = 0; k < clipped.length; k++) {
+        loggedMs += clipped[k].clipEnd - clipped[k].clipStart;
+      }
+      var gapCount = 0;
+      var gapMs = 0;
+
       var GAP_MIN = 30;
       var prevEnd = null;
       for (var j = 0; j < clipped.length; j++) {
@@ -764,6 +772,8 @@ export function indexPage() {
             gap.setAttribute('data-to', new Date(c.clipStart).toISOString());
             gap.textContent = 'Gap · ' + fmtHm(gapMin) + ' — click to log';
             track.appendChild(gap);
+            gapCount++;
+            gapMs += c.clipStart - prevEnd;
           }
         }
 
@@ -799,6 +809,22 @@ export function indexPage() {
         }
         track.appendChild(bar);
         prevEnd = Math.max(prevEnd || 0, c.clipEnd);
+      }
+
+      var nowMsForLine = Date.now();
+      if (nowMsForLine >= bounds.fromMs && nowMsForLine < bounds.toMs) {
+        var nowLine = document.createElement('div');
+        nowLine.className = 'timeline-now';
+        nowLine.style.top = (((nowMsForLine - bounds.fromMs) / (bounds.toMs - bounds.fromMs)) * 100) + '%';
+        track.appendChild(nowLine);
+      }
+
+      var summary = document.getElementById('timeline-summary');
+      var loggedLabel = fmtHm(Math.round(loggedMs / 60000));
+      if (gapCount === 0) {
+        summary.textContent = loggedLabel + ' logged · 0 gaps';
+      } else {
+        summary.textContent = loggedLabel + ' logged · ' + gapCount + ' gap' + (gapCount === 1 ? '' : 's') + ' (' + fmtHm(Math.round(gapMs / 60000)) + ')';
       }
 
       canvas.appendChild(track);
