@@ -38,12 +38,14 @@ A table showing the last 20 sessions from the local SQLite database:
 | Duration    | Elapsed time, or "In progress" if still running |
 | Jira        | Associated Jira ticket, if any                  |
 
-### Sessions: Timeline view
+### Calendar
 
-The Sessions tab has two views, toggled with the **Table / Timeline** pills:
+The Track Time card has three sub-tabs: **Auto Track**, **Manual Log**, and **Calendar**. Calendar is a vertical day view (00:00 → 24:00) of all sessions for a chosen date. Each session renders as a bar; gaps of 30 min or more between sessions show a red diagonal-striped block. Controls:
 
-- **Table** — paginated list of recent sessions (default).
-- **Timeline** — vertical day view (00:00 → 24:00) with one bar per session and red-highlighted gaps of 30 min or more. Click a bar to delete the entry; click a gap to jump to Manual Log with the gap's start/end pre-filled. The right side of the date row shows total logged time and gap stats for the selected day. View choice persists across reloads.
+- Date row: prev / next / today, plus a right-aligned summary `Xh Ym logged · N gaps (Xh Ym)`.
+- Click a session bar → delete confirm (same flow as the Sessions table).
+- Click a gap → switch to **Manual Log** with the gap's start/end pre-filled.
+- Drag on empty area → ghost bar grows showing duration; release to log a session for that range (snaps to 5-minute boundaries; Escape cancels).
 
 ## Settings Tab
 
