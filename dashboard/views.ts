@@ -746,9 +746,27 @@ export function indexPage() {
 
       clipped.sort(function(a, b) { return a.clipStart - b.clipStart; });
 
+      var GAP_MIN = 30;
       var prevEnd = null;
       for (var j = 0; j < clipped.length; j++) {
         var c = clipped[j];
+
+        if (prevEnd !== null && c.clipStart > prevEnd) {
+          var gapMin = Math.round((c.clipStart - prevEnd) / 60000);
+          if (gapMin >= GAP_MIN) {
+            var gapTopPct = ((prevEnd - bounds.fromMs) / (bounds.toMs - bounds.fromMs)) * 100;
+            var gapHeightPct = ((c.clipStart - prevEnd) / (bounds.toMs - bounds.fromMs)) * 100;
+            var gap = document.createElement('div');
+            gap.className = 'timeline-gap';
+            gap.style.top = gapTopPct + '%';
+            gap.style.height = gapHeightPct + '%';
+            gap.setAttribute('data-from', new Date(prevEnd).toISOString());
+            gap.setAttribute('data-to', new Date(c.clipStart).toISOString());
+            gap.textContent = 'Gap · ' + fmtHm(gapMin) + ' — click to log';
+            track.appendChild(gap);
+          }
+        }
+
         var topPct = ((c.clipStart - bounds.fromMs) / (bounds.toMs - bounds.fromMs)) * 100;
         var heightPct = ((c.clipEnd - c.clipStart) / (bounds.toMs - bounds.fromMs)) * 100;
         var bar = document.createElement('button');
