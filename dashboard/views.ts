@@ -162,6 +162,8 @@ export function indexPage() {
     .timeline-gap:hover { background:repeating-linear-gradient(45deg, rgba(248,81,73,0.18) 0 8px, rgba(248,81,73,0.28) 8px 16px); }
     .timeline-now { position:absolute; left:0; right:0; height:2px; background:#f0883e; box-shadow:0 0 6px rgba(240,136,62,0.6); pointer-events:none; }
     .timeline-empty { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#8b949e; }
+    .timeline-drag-ghost { position:absolute; left:0; right:0; background:rgba(31,111,235,0.22); border:1px dashed #58a6ff; color:#58a6ff; font-size:0.7rem; padding:2px 6px; display:flex; align-items:center; pointer-events:none; z-index:3; border-radius:4px; box-sizing:border-box; }
+    .timeline-track.dragging { cursor:crosshair; }
 
   </style>
 </head>
@@ -1540,6 +1542,7 @@ export function indexPage() {
         deleteSession(delBtn.getAttribute('data-delete-id'));
         return;
       }
+      if (typeof __tlDragEnded !== 'undefined' && __tlDragEnded) return;
       var bar = e.target.closest('.timeline-bar[data-session-id]');
       if (bar) {
         deleteSessionFromTimeline(bar.getAttribute('data-session-id'));
@@ -2193,6 +2196,107 @@ export function indexPage() {
         timelineDate = startOfTodayLocal();
         loadTimeline();
       });
+    })();
+
+    var __tlDragEnded = false;
+    (function wireTimelineDrag() {
+      var canvas = document.getElementById('timeline-canvas');
+      if (!canvas) return;
+      var SNAP_MS = 5 * 60 * 1000;
+      var DRAG_THRESHOLD_PX = 5;
+      var dragState = null;
+
+      function snapMs(ms) { return Math.round(ms / SNAP_MS) * SNAP_MS; }
+
+      function onMouseDown(e) {
+        if (e.button !== 0) return;
+        if (!e.target || !e.target.closest) return;
+        if (e.target.closest('.timeline-bar') || e.target.closest('.timeline-gap')) return;
+        var trackEl = canvas.querySelector('.timeline-track');
+        if (!trackEl) return;
+        var rect = trackEl.getBoundingClientRect();
+        if (e.clientX < rect.left || e.clientX > rect.right) return;
+        var y = e.clientY - rect.top;
+        if (y < 0 || y > rect.height) return;
+        var bounds = timelineDayBounds(timelineDate);
+        dragState = {
+          trackEl: trackEl,
+          trackTop: rect.top,
+          trackHeight: rect.height,
+          dayStartMs: bounds.fromMs,
+          startY: y,
+          startClientY: e.clientY,
+          active: false,
+          ghost: null,
+        };
+        e.preventDefault();
+      }
+
+      function ensureGhost(d) {
+        if (d.ghost) return;
+        d.ghost = document.createElement('div');
+        d.ghost.className = 'timeline-drag-ghost';
+        d.trackEl.appendChild(d.ghost);
+        d.trackEl.classList.add('dragging');
+      }
+
+      function tearDown(d, cancel) {
+        if (d.ghost) d.ghost.remove();
+        if (d.trackEl) d.trackEl.classList.remove('dragging');
+        document.body.style.userSelect = '';
+        if (d.active && !cancel) {
+          __tlDragEnded = true;
+          setTimeout(function() { __tlDragEnded = false; }, 50);
+        }
+      }
+
+      function onMouseMove(e) {
+        if (!dragState) return;
+        var d = dragState;
+        if (!d.active) {
+          if (Math.abs(e.clientY - d.startClientY) < DRAG_THRESHOLD_PX) return;
+          d.active = true;
+          ensureGhost(d);
+          document.body.style.userSelect = 'none';
+        }
+        var curY = Math.max(0, Math.min(d.trackHeight, e.clientY - d.trackTop));
+        var top = Math.min(d.startY, curY);
+        var height = Math.abs(curY - d.startY);
+        d.ghost.style.top = (top / d.trackHeight * 100) + '%';
+        d.ghost.style.height = (height / d.trackHeight * 100) + '%';
+        var startMs = snapMs(d.dayStartMs + (top / d.trackHeight) * 24 * 3600 * 1000);
+        var endMs = snapMs(d.dayStartMs + ((top + height) / d.trackHeight) * 24 * 3600 * 1000);
+        var dur = Math.max(0, Math.round((endMs - startMs) / 60000));
+        d.ghost.textContent = dur + 'm — release to log';
+      }
+
+      function onMouseUp(e) {
+        if (!dragState) return;
+        var d = dragState;
+        dragState = null;
+        if (!d.active) { tearDown(d, true); return; }
+        var curY = Math.max(0, Math.min(d.trackHeight, e.clientY - d.trackTop));
+        var top = Math.min(d.startY, curY);
+        var bottom = Math.max(d.startY, curY);
+        var startMs = snapMs(d.dayStartMs + (top / d.trackHeight) * 24 * 3600 * 1000);
+        var endMs = snapMs(d.dayStartMs + (bottom / d.trackHeight) * 24 * 3600 * 1000);
+        tearDown(d, false);
+        if (endMs - startMs < SNAP_MS) return;
+        prefillManualLogFromGap(new Date(startMs).toISOString(), new Date(endMs).toISOString());
+      }
+
+      function onKeyDown(e) {
+        if (e.key === 'Escape' && dragState) {
+          var d = dragState;
+          dragState = null;
+          tearDown(d, true);
+        }
+      }
+
+      canvas.addEventListener('mousedown', onMouseDown);
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+      document.addEventListener('keydown', onKeyDown);
     })();
 
     // --- Init ---
