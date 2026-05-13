@@ -757,28 +757,32 @@ export function indexPage() {
 
       var GAP_MIN = 30;
       var prevEnd = null;
+      var prevVisualBottomPct = -1;
       for (var j = 0; j < clipped.length; j++) {
         var c = clipped[j];
+        var curTopPct = ((c.clipStart - bounds.fromMs) / (bounds.toMs - bounds.fromMs)) * 100;
 
         if (prevEnd !== null && c.clipStart > prevEnd) {
           var gapMin = Math.round((c.clipStart - prevEnd) / 60000);
           if (gapMin >= GAP_MIN) {
-            var gapTopPct = ((prevEnd - bounds.fromMs) / (bounds.toMs - bounds.fromMs)) * 100;
-            var gapHeightPct = ((c.clipStart - prevEnd) / (bounds.toMs - bounds.fromMs)) * 100;
-            var gap = document.createElement('div');
-            gap.className = 'timeline-gap';
-            gap.style.top = gapTopPct + '%';
-            gap.style.height = gapHeightPct + '%';
-            gap.setAttribute('data-from', new Date(prevEnd).toISOString());
-            gap.setAttribute('data-to', new Date(c.clipStart).toISOString());
-            gap.textContent = 'Gap · ' + fmtHm(gapMin) + ' — click to log';
-            track.appendChild(gap);
+            var gapTopPct = prevVisualBottomPct >= 0 ? prevVisualBottomPct : ((prevEnd - bounds.fromMs) / (bounds.toMs - bounds.fromMs)) * 100;
+            var gapHeightPct = Math.max(0, curTopPct - gapTopPct);
+            if (gapHeightPct > 0.1) {
+              var gap = document.createElement('div');
+              gap.className = 'timeline-gap';
+              gap.style.top = gapTopPct + '%';
+              gap.style.height = gapHeightPct + '%';
+              gap.setAttribute('data-from', new Date(prevEnd).toISOString());
+              gap.setAttribute('data-to', new Date(c.clipStart).toISOString());
+              gap.textContent = 'Gap · ' + fmtHm(gapMin) + ' — click to log';
+              track.appendChild(gap);
+            }
             gapCount++;
             gapMs += c.clipStart - prevEnd;
           }
         }
 
-        var topPct = ((c.clipStart - bounds.fromMs) / (bounds.toMs - bounds.fromMs)) * 100;
+        var topPct = curTopPct;
         var heightPct = ((c.clipEnd - c.clipStart) / (bounds.toMs - bounds.fromMs)) * 100;
         var bar = document.createElement('button');
         bar.type = 'button';
@@ -810,6 +814,7 @@ export function indexPage() {
         }
         track.appendChild(bar);
         prevEnd = Math.max(prevEnd || 0, c.clipEnd);
+        prevVisualBottomPct = Math.max(prevVisualBottomPct, topPct + Math.max(heightPct, 1.2));
       }
 
       var nowMsForLine = Date.now();
