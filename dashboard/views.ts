@@ -138,6 +138,30 @@ export function indexPage() {
     #ctx-menu button { display: block; width: 100%; margin: 0; text-align: left; background: transparent; border: none; color: #e1e4e8; padding: 0.4rem 0.7rem; border-radius: 4px; font-size: 0.85rem; cursor: pointer; }
     #ctx-menu button:hover { background: #21262d; }
 
+    /* Timeline view */
+    .timeline-date-row { display:flex; align-items:center; gap:0.5rem; margin-bottom:0.75rem; flex-wrap:wrap; }
+    .timeline-date-row button { background:#30363d; color:#c9d1d9; border:1px solid #30363d; border-radius:6px; padding:0.3rem 0.6rem; cursor:pointer; margin:0; }
+    .timeline-date-row button:hover { background:#3a414b; }
+    .timeline-date-label { font-weight:600; min-width:11ch; text-align:center; }
+    .timeline-summary { margin-left:auto; color:#8b949e; font-size:0.85rem; }
+    .timeline-canvas-wrap { max-height:60vh; overflow-y:auto; border:1px solid #21262d; border-radius:8px; background:#0d1117; }
+    .timeline-canvas { position:relative; height:720px; }
+    .timeline-gutter { position:absolute; top:0; left:0; width:56px; height:100%; border-right:1px solid #21262d; }
+    .timeline-gutter span { position:absolute; left:0; right:0; padding:0 0.5rem; font-size:0.7rem; color:#8b949e; transform:translateY(-50%); }
+    .timeline-grid { position:absolute; top:0; left:56px; right:0; height:100%; pointer-events:none; }
+    .timeline-grid div { position:absolute; left:0; right:0; height:1px; background:#161b22; }
+    .timeline-track { position:absolute; top:0; left:56px; right:8px; height:100%; }
+    .timeline-bar { position:absolute; left:0; right:0; background:#1f6feb; border:1px solid #388bfd; border-radius:4px; color:#fff; font-size:0.75rem; padding:2px 6px; text-align:left; cursor:pointer; overflow:hidden; display:flex; align-items:center; gap:0.4rem; line-height:1.1; }
+    .timeline-bar .dot { display:inline-block; width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+    .timeline-bar .desc { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .timeline-bar .jira { font-size:0.7rem; background:rgba(0,0,0,0.25); padding:1px 4px; border-radius:3px; flex-shrink:0; }
+    .timeline-bar.in-progress { border-style:dashed; }
+    .timeline-bar.overlap { left:50%; }
+    .timeline-gap { position:absolute; left:0; right:0; background:rgba(248,81,73,0.12); border-top:1px dashed #f85149; border-bottom:1px dashed #f85149; color:#f85149; font-size:0.7rem; padding:2px 6px; cursor:pointer; display:flex; align-items:center; }
+    .timeline-gap:hover { background:rgba(248,81,73,0.2); }
+    .timeline-now { position:absolute; left:0; right:0; height:2px; background:#f0883e; box-shadow:0 0 6px rgba(240,136,62,0.6); pointer-events:none; }
+    .timeline-empty { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#8b949e; }
+
   </style>
 </head>
 <body>
