@@ -234,6 +234,14 @@ export function getRecentSessions(limit = 10, offset = 0) {
   return stmt.all(limit, offset);
 }
 
+export function getSessionsInRange(fromIso: string, toIso: string) {
+  const db = getDb();
+  const stmt = db.prepare(
+    'SELECT * FROM sessions WHERE startedAt < ? AND (completedAt IS NULL OR completedAt > ?) ORDER BY startedAt ASC',
+  );
+  return stmt.all(toIso, fromIso);
+}
+
 export function getSessionCount() {
   const db = getDb();
   const stmt = db.prepare('SELECT COUNT(*) as count FROM sessions');
