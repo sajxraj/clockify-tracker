@@ -38,6 +38,13 @@ A table showing the last 20 sessions from the local SQLite database:
 | Duration    | Elapsed time, or "In progress" if still running |
 | Jira        | Associated Jira ticket, if any                  |
 
+### Sessions: Timeline view
+
+The Sessions tab has two views, toggled with the **Table / Timeline** pills:
+
+- **Table** — paginated list of recent sessions (default).
+- **Timeline** — vertical day view (00:00 → 24:00) with one bar per session and red-highlighted gaps of 30 min or more. Click a bar to delete the entry; click a gap to jump to Manual Log with the gap's start/end pre-filled. The right side of the date row shows total logged time and gap stats for the selected day. View choice persists across reloads.
+
 ## Settings Tab
 
 Configure connections to external services:
