@@ -1,6 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { Database } from 'bun:sqlite';
 
+// NOTE: the SQL inside `getSessionsInRange` below is a deliberate copy of the
+// query used by the exported `getSessionsInRange` in `lib/db.ts`. The tests
+// exercise the SQL semantics against an in-memory DB to keep them fast and
+// avoid touching the real db singleton. Keep these two queries in sync.
+
 function makeSchema(db: Database) {
   db.exec(`
     CREATE TABLE sessions (
