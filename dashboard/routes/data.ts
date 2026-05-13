@@ -6,6 +6,7 @@ import {
   getAllProjects,
   upsertProjects,
   toggleProjectActive,
+  getSessionsInRange,
 } from '../../lib/db.js';
 import { Clockify } from '../../clockify.js';
 import { isClockifyEnabled, isJiraDisabled } from '../../lib/credentials.js';
@@ -53,21 +54,44 @@ dataRoutes.post('/projects/toggle', async (c) => {
   return c.json({ ok: true });
 });
 
-// Sessions with pagination
+// Sessions with pagination or range query
 dataRoutes.get('/sessions', (c) => {
+  const from = c.req.query('from');
+  const to = c.req.query('to');
+
+  const allProjects = getAllProjects();
+  const projectMap = new Map(allProjects.map((p) => [p.id, p.name]));
+
+  const enrich = (rows: Array<Record<string, unknown>>) =>
+    rows.map((s) => ({
+      ...s,
+      projectName: s.projectId ? (projectMap.get(s.projectId as string) ?? 'Unknown') : null,
+    }));
+
+  if (from && to) {
+    const fromMs = Date.parse(from);
+    const toMs = Date.parse(to);
+    if (Number.isNaN(fromMs) || Number.isNaN(toMs) || toMs <= fromMs) {
+      return c.json({ ok: false, error: 'Invalid from/to range.' }, 400);
+    }
+    const rows = getSessionsInRange(from, to) as Array<Record<string, unknown>>;
+    const data = enrich(rows);
+    return c.json({
+      data,
+      page: 1,
+      limit: data.length,
+      total: data.length,
+      totalPages: 1,
+    });
+  }
+
   const page = Math.max(1, parseInt(c.req.query('page') || '1', 10));
   const limit = Math.min(50, Math.max(1, parseInt(c.req.query('limit') || '10', 10)));
   const offset = (page - 1) * limit;
 
-  const sessions = getRecentSessions(limit, offset);
+  const sessions = getRecentSessions(limit, offset) as Array<Record<string, unknown>>;
   const total = getSessionCount();
-  const allProjects = getAllProjects();
-  const projectMap = new Map(allProjects.map((p) => [p.id, p.name]));
-
-  const enriched = (sessions as Array<Record<string, unknown>>).map((s) => ({
-    ...s,
-    projectName: s.projectId ? (projectMap.get(s.projectId as string) ?? 'Unknown') : null,
-  }));
+  const enriched = enrich(sessions);
 
   return c.json({
     data: enriched,
