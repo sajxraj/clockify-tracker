@@ -74,7 +74,9 @@ dataRoutes.get('/sessions', (c) => {
     if (Number.isNaN(fromMs) || Number.isNaN(toMs) || toMs <= fromMs) {
       return c.json({ ok: false, error: 'Invalid from/to range.' }, 400);
     }
-    const rows = getSessionsInRange(from, to) as Array<Record<string, unknown>>;
+    const fromIso = new Date(fromMs).toISOString();
+    const toIso = new Date(toMs).toISOString();
+    const rows = getSessionsInRange(fromIso, toIso) as Array<Record<string, unknown>>;
     const data = enrich(rows);
     return c.json({
       data,
