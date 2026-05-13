@@ -273,28 +273,52 @@ export function indexPage() {
 
   <!-- SESSIONS TAB -->
   <div id="tab-sessions" class="tab-content">
-    <div class="card card-full">
-      <h2>Recent Sessions</h2>
-      <div id="sessions-container" class="table-wrap">
-        <table class="sessions-table">
-          <thead>
-            <tr>
-              <th>Description</th>
-              <th>Project</th>
-              <th>Started</th>
-              <th>Duration</th>
-              <th>Jira</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody id="sessions-body">
-            <tr><td colspan="6" class="empty-state">Loading...</td></tr>
-          </tbody>
-        </table>
-        <div id="pagination" style="display:none; margin-top:1rem; align-items:center; justify-content:center; gap:0.75rem; flex-wrap:wrap;">
-          <button id="prev-btn" onclick="changePage(-1)" style="background:#30363d; margin-top:0; padding:0.3rem 0.75rem;" disabled>&lt;</button>
-          <span id="page-info" style="font-size:0.85rem; color:#8b949e;"></span>
-          <button id="next-btn" onclick="changePage(1)" style="background:#30363d; margin-top:0; padding:0.3rem 0.75rem;">&gt;</button>
+    <div class="track-tabs" id="sessions-view-tabs" style="margin-bottom:1rem;">
+      <button class="track-tab-btn active" data-view="table" onclick="switchSessionsView('table')">Table</button>
+      <button class="track-tab-btn" data-view="timeline" onclick="switchSessionsView('timeline')">Timeline</button>
+    </div>
+
+    <div id="sessions-view-table">
+      <div class="card card-full">
+        <h2>Recent Sessions</h2>
+        <div id="sessions-container" class="table-wrap">
+          <table class="sessions-table">
+            <thead>
+              <tr>
+                <th>Description</th>
+                <th>Project</th>
+                <th>Started</th>
+                <th>Duration</th>
+                <th>Jira</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="sessions-body">
+              <tr><td colspan="6" class="empty-state">Loading...</td></tr>
+            </tbody>
+          </table>
+          <div id="pagination" style="display:none; margin-top:1rem; align-items:center; justify-content:center; gap:0.75rem; flex-wrap:wrap;">
+            <button id="prev-btn" onclick="changePage(-1)" style="background:#30363d; margin-top:0; padding:0.3rem 0.75rem;" disabled>&lt;</button>
+            <span id="page-info" style="font-size:0.85rem; color:#8b949e;"></span>
+            <button id="next-btn" onclick="changePage(1)" style="background:#30363d; margin-top:0; padding:0.3rem 0.75rem;">&gt;</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="sessions-view-timeline" style="display:none;">
+      <div class="card card-full">
+        <div class="timeline-date-row">
+          <button type="button" id="timeline-prev" aria-label="Previous day">&lsaquo;</button>
+          <span id="timeline-date-label" class="timeline-date-label">--</span>
+          <button type="button" id="timeline-next" aria-label="Next day">&rsaquo;</button>
+          <button type="button" id="timeline-today">Today</button>
+          <span class="timeline-summary" id="timeline-summary"></span>
+        </div>
+        <div class="timeline-canvas-wrap">
+          <div id="timeline-canvas" class="timeline-canvas">
+            <div class="timeline-empty" id="timeline-empty">Loading...</div>
+          </div>
         </div>
       </div>
     </div>
@@ -544,6 +568,27 @@ export function indexPage() {
       document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
       document.getElementById('tab-' + tab).classList.add('active');
       if (nav) nav.classList.add('active');
+    }
+
+    function switchSessionsView(view) {
+      var valid = view === 'timeline' ? 'timeline' : 'table';
+      try { localStorage.setItem('clocktopus.sessions.view', valid); } catch (e) {}
+      var tableWrap = document.getElementById('sessions-view-table');
+      var timelineWrap = document.getElementById('sessions-view-timeline');
+      tableWrap.style.display = valid === 'table' ? '' : 'none';
+      timelineWrap.style.display = valid === 'timeline' ? '' : 'none';
+      var tabs = document.querySelectorAll('#sessions-view-tabs .track-tab-btn');
+      for (var i = 0; i < tabs.length; i++) {
+        if (tabs[i].getAttribute('data-view') === valid) tabs[i].classList.add('active');
+        else tabs[i].classList.remove('active');
+      }
+      if (valid === 'timeline') loadTimeline();
+    }
+
+    // stub — real impl added in later task
+    function loadTimeline() {
+      var empty = document.getElementById('timeline-empty');
+      if (empty) empty.textContent = 'Timeline coming soon.';
     }
 
     function switchTrackMode(mode) {
@@ -1821,6 +1866,12 @@ export function indexPage() {
     // --- Init ---
     fetchStatus();
     loadProjects();
+    (function restoreSessionsView() {
+      try {
+        var saved = localStorage.getItem('clocktopus.sessions.view');
+        if (saved === 'timeline') switchSessionsView('timeline');
+      } catch (e) {}
+    })();
     loadSessions();
     loadLastTask();
     checkActiveTimer();

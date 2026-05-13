@@ -18,6 +18,7 @@
 /mempalace.yaml
 /.superpowers/
 /.worktrees/
+/.claude/worktrees/
 # Yarn 1 transient cache directories created by lint-staged/husky workflow
 yarn--*/
 v8-compile-cache-*/
