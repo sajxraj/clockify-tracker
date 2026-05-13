@@ -789,10 +789,10 @@ export function indexPage() {
         var dur = Math.round((c.endMs - c.startMs) / 60000);
         bar.title =
           (c.raw.description || '(no description)') +
-          '\n' + (c.raw.projectName || 'No project') +
-          (c.raw.jiraTicket ? '\n' + c.raw.jiraTicket : '') +
-          '\n' + fmtTimeLocal(c.startMs) + ' - ' + (c.isOpen ? 'in progress' : fmtTimeLocal(c.endMs)) +
-          '\n' + fmtHm(dur);
+          '\\n' + (c.raw.projectName || 'No project') +
+          (c.raw.jiraTicket ? '\\n' + c.raw.jiraTicket : '') +
+          '\\n' + fmtTimeLocal(c.startMs) + ' - ' + (c.isOpen ? 'in progress' : fmtTimeLocal(c.endMs)) +
+          '\\n' + fmtHm(dur);
         var dot = document.createElement('span');
         dot.className = 'dot';
         dot.style.background = projectColor(c.raw.projectId);
